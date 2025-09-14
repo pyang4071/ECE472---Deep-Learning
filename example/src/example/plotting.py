@@ -46,7 +46,9 @@ def plot_fit(
 
     xs = np.linspace(0, 1, 10)
     xs = xs[:, np.newaxis]
-    ax.plot(xs, np.squeeze(model(jnp.asarray(xs))), "-", np.squeeze(data.x), data.y, "o")
+    ax.plot(
+        xs, np.squeeze(model(jnp.asarray(xs))), "-", np.squeeze(data.x), data.y, "o"
+    )
 
     plt.tight_layout()
 
