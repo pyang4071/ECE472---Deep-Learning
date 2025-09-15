@@ -36,6 +36,7 @@ class PlottingSettings(BaseModel):
     figsize: Tuple[int, int] = (5, 3)
     dpi: int = 200
     output_dir: Path = Path("artifacts")
+    linspace: int = 200
 
 
 class AppSettings(BaseSettings):

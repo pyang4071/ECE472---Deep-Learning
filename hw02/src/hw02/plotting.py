@@ -29,8 +29,12 @@ def plot_fit(
     log.info("plotting")
 
     feature1, feature2 = np.meshgrid(
-        np.linspace(data.x[:, 0].min(), data.x[:, 0].max()),
-        np.linspace(data.x[:, 1].min(), data.x[:, 1].max()),
+        np.linspace(
+            data.x[:, 0].min() * 1.1, data.x[:, 0].max() * 1.1, settings.linspace
+        ),
+        np.linspace(
+            data.x[:, 1].min() * 1.1, data.x[:, 1].max() * 1.1, settings.linspace
+        ),
     )
     grid = np.vstack([feature1.ravel(), feature2.ravel()]).T
     tree = DecisionTreeClassifier().fit(data.x[:, :2], data.t)
