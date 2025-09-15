@@ -24,7 +24,6 @@ def train_step_spiral(
     def loss_function(model: NNXSpiralModel):
         fxy = model(x)
         fxy = jnp.clip(fxy, epsilon, 1 - epsilon)  # to avoid infy loss
-        log.debug("loss function shape", fxy=fxy.shape)
         loss = -((t * jnp.log(fxy)) + ((1 - t) * (jnp.log(1 - fxy))))
         loss = jnp.mean(loss)
         return loss
@@ -53,7 +52,6 @@ def train_spiral(
         t = t.reshape(-1, 1)  # t is (num_samples, 1)
 
         loss = train_step_spiral(model, optimizer, x, t, settings.log_clip)
-        log.debug("loss", loss=loss)
 
         bar.set_description(f"Loss at {i} => {loss:.6f}")
         bar.refresh()

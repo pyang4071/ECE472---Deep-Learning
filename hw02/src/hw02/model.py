@@ -33,7 +33,7 @@ class HiddenLayer(nnx.Module):
         # do the thing (Wx+b)
         log.debug("shape of x", x=x.shape)
         inner = x @ self.w + self.b
-        # the nonlinear of hidden_activation
+
         return self.hidden_activation(inner)  # (batch_size, hidden_layer_width)
 
 
@@ -48,9 +48,9 @@ class NNXSpiralModel(nnx.Module):
         num_outputs: int,
         num_layers: int,
         hidden_layer_width: int,
-        hidden_activation=nnx.identity,  # choice of nonlinearity in each layer
-        output_activation=nnx.identity,
-    ):  # choice for output
+        hidden_activation=jax.nn.tanh,
+        output_activation=jax.nn.sigmoid,
+    ):
         key = rngs.params()
         self.num_features = num_inputs
         self.num_layers = num_layers
@@ -69,7 +69,7 @@ class NNXSpiralModel(nnx.Module):
             return HiddenLayer(
                 hidden_dim=self.hidden_layer_width,
                 key=key,
-                hidden_activation=self.hidden_activation,
+                hidden_activation=hidden_activation,
             )
 
         self.keys = jax.random.split(key, self.num_layers - 1)
@@ -92,8 +92,6 @@ class NNXSpiralModel(nnx.Module):
 
         # x is (batch_size, features)
         x_first = x @ self.first_w + self.first_b
-        # jax.debug.print("x_first = {}",x_first)
-        # jax.debug.print("x_first after act = {}", self.hidden_activation(x_first))
         x_first = self.hidden_activation(x_first)
         # x_first is (batch_size, hidden_layer_width)
         t_inner = forward(self.hidden_layers, x_first)
@@ -102,7 +100,11 @@ class NNXSpiralModel(nnx.Module):
         # do outer layer
         t_outer = t_inner @ self.out_w + self.out_b  # (batch_size, 1)
         # apply outer output activation function
-        # jax.debug.print("t_outer = {}", t_outer)
+        t_outer = self.output_activation(t_outer)
+        return t_outer
 
-        # jax.debug.print("t_outer post act = {}", self.output_activation(t_outer))
-        return self.output_activation(t_outer)
+
+"""
+Functional form for f 
+First a MLP network was created and both the hidden and output activation were set to identity. However, the outputs were not in the valid domains of the log so a sigmoid function was used as the output activation to fit convert all the values to between 0 and 1. Clipping was used at training time to avoid reaching infinite loss. Using identity hidden activation resulted in a linear classification which can't do spiral. Sigmoid would have reduced the grad to 0. Leaky and normal relu was attempted but they didn't make spirals but instead connected them somewhat. Thus, tanh was used.
+"""

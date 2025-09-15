@@ -29,14 +29,14 @@ class Data_Spiral:
 
         # generate red
         theta1 = rng.uniform(-7 * np.pi / 2, 0, size=n)
-        r1 = 0.5 * (2 * theta1 - np.pi / 2)
+        r1 = 0.5 * (2 * theta1)
         x1 = r1 * np.cos(theta1)
         y1 = r1 * np.sin(theta1)
         log.debug("x1, y1", x1=x1, y1=y1)
 
         # generate blue
         theta2 = rng.uniform(-7 * np.pi / 2, 0, size=n)
-        r2 = 0.5 * (-2 * theta2 + np.pi / 2)
+        r2 = 0.5 * (-2 * theta2)
         x2 = r2 * np.cos(theta2)
         y2 = r2 * np.sin(theta2)
 

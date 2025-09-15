@@ -2,7 +2,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.inspection import DecisionBoundaryDisplay
-from sklearn.tree import DecisionTreeClassifier
 import structlog
 
 from .config import PlottingSettings
@@ -37,12 +36,19 @@ def plot_fit(
         ),
     )
     grid = np.vstack([feature1.ravel(), feature2.ravel()]).T
-    tree = DecisionTreeClassifier().fit(data.x[:, :2], data.t)
-    y_pred = np.reshape(tree.predict(grid), feature1.shape)
-    display = DecisionBoundaryDisplay(xx0=feature1, xx1=feature2, response=y_pred)
+    log.debug("grid = {}", grid=grid)
+    t_pred = model(grid)
+    log.debug("feature1 shape", shape=feature1.shape)
+    log.debug("t_pred shape", shape=t_pred.shape)
+    t_pred = t_pred.ravel().reshape(feature1.shape)
+    log.debug("t", t=t_pred)
+    t_pred = (t_pred > 0.5).astype(int)
+    display = DecisionBoundaryDisplay(xx0=feature1, xx1=feature2, response=t_pred)
     display.plot()
 
     display.ax_.scatter(data.x[:, 0], data.x[:, 1], c=data.t, edgecolor="black")
+
+    plt.title("Spiral Classification - Decision Boundary ")
 
     settings.output_dir.mkdir(parents=True, exist_ok=True)
     output_path = settings.output_dir / "hw02_plt.pdf"
