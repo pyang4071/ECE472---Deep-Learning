@@ -49,6 +49,9 @@ def plot_fit(
     display.ax_.scatter(data.x[:, 0], data.x[:, 1], c=data.t, edgecolor="black")
 
     plt.title("Spiral Classification - Decision Boundary ")
+    plt.xlabel("x")
+    ylab = plt.ylabel("y")
+    ylab.set_rotation(0)
 
     settings.output_dir.mkdir(parents=True, exist_ok=True)
     output_path = settings.output_dir / "hw02_plt.pdf"

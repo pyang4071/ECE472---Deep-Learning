@@ -19,3 +19,7 @@ output_dir = "artifacts"
 figsize = [5, 5]
 dpi = 200
 linspace = 200
+
+#0.001
+#5
+#200
