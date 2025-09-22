@@ -1,0 +1,17 @@
+debug = false
+random_seed = 0xc61dd8fc
+
+[data]
+split_ratio = 0.8
+
+[training]
+batch_size = 128
+num_iters = 1500
+learning_rate = 0.001
+l2reg = 0.001
+
+[plotting]
+output_dir = "artifacts"
+figsize = [5, 5]
+dpi = 200
+linspace = 200
