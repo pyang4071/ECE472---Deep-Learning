@@ -39,12 +39,14 @@ def main() -> None:
         l2reg=settings.training.l2reg,
         rngs=nnx.Rngs(model_key),
         shape=[28, 28],
-        # num_each_layer=[1,1],
     )
 
-    optimizer = nnx.Optimizer(
-        model, optax.adam(settings.training.learning_rate), wrt=nnx.Param
+    schedule = optax.cosine_decay_schedule(
+        init_value=settings.training.learning_rate,
+        decay_steps=settings.training.num_iters,
     )
+
+    optimizer = nnx.Optimizer(model, optax.adam(schedule), wrt=nnx.Param)
 
     log.info("training")
     train_mnist(model, optimizer, data, settings.training, np_rng)

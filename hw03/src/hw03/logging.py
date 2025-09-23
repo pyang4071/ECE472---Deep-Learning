@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from pathlib import Path
 
 import jax
@@ -34,7 +33,8 @@ def configure_logging():
     """Configure logging for the application."""
     logging.basicConfig(
         format="%(message)s",
-        stream=sys.stdout,
+        filename="hw03_results.txt",
+        filemode="w",
     )
 
     # Set the level for the application's logger

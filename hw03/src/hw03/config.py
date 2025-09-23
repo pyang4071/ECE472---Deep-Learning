@@ -1,6 +1,4 @@
-from pathlib import Path
 from importlib.resources import files
-from typing import Tuple
 
 from pydantic import BaseModel
 from pydantic_settings import (
@@ -26,15 +24,6 @@ class TrainingSettings(BaseModel):
     l2reg: float = 0.001
 
 
-class PlottingSettings(BaseModel):
-    """Settings for plotting."""
-
-    figsize: Tuple[int, int] = (5, 3)
-    dpi: int = 200
-    output_dir: Path = Path("artifacts")
-    linspace: int = 200
-
-
 class AppSettings(BaseSettings):
     """Main application settings."""
 
@@ -42,7 +31,6 @@ class AppSettings(BaseSettings):
     random_seed: int = 31415
     data: DataSettings = DataSettings()
     training: TrainingSettings = TrainingSettings()
-    plotting: PlottingSettings = PlottingSettings()
 
     model_config = SettingsConfigDict(
         toml_file=files("hw03").joinpath("config.toml"),
