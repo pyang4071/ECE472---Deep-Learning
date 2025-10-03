@@ -1,0 +1,25 @@
+debug = false
+random_seed = 0xc61dd8fc
+
+[data]
+split_ratio = 0.8
+
+[model]
+input_depth = 3
+data_shape = [32,32]
+num_classes = 10
+kernel = [[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3],[3,3]]
+layer_depths = [16,16,16,16,32,32,32,64,64,64]
+num_groups = [0,1,1,1,2,2,2,4,4,4]
+stride = [1,1,1,1,2,1,1,2,1,1] 
+l2reg = 0.001
+
+
+[training]
+batch_size = 128
+num_iters = 50000
+learning_rate = 0.001
+flip_ratio = 0.1 
+noise_std = 0.05
+
+# attempt using RES20
