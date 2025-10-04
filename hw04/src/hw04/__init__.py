@@ -67,7 +67,7 @@ def main() -> None:
     )
 
     # checkpoint this
-    ckpt_dir = ocp.test_utils.erase_and_create_empty("/tmp/cifar10-pooling/")
+    ckpt_dir = ocp.test_utils.erase_and_create_empty("/tmp/cifar10-100000/")
     _, state = nnx.split(model)
     # nnx.display(state)
 
@@ -108,7 +108,7 @@ def test_on_test_set():
     )
 
     # recreate model
-    ckpt_dir = Path("/tmp/checkpoints/")
+    ckpt_dir = Path("/tmp/cifar10-pooling/")
     checkpointer = ocp.StandardCheckpointer()
     graphdef, state = nnx.split(model)
     state_restored = checkpointer.restore(ckpt_dir / "cifar10-resnet20", state)

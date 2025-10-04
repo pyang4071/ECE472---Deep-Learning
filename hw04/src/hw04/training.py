@@ -49,14 +49,26 @@ def data_augment(
     x: np.ndarray,
     settings: TrainingSettings,
     np_rng: np.random.Generator,
+    pad: int = 4,
 ):
     """randomly data augment"""
-    batch_size = x.shape[0]
+    batch_size, h, w, c = x.shape
     # flip over y
     flip_mask = np_rng.random(batch_size) < settings.flip_ratio
     for i in range(batch_size):
         if flip_mask[i]:
             x[i] = np.flip(x[i], axis=1)
+
+        # shift
+        x_pad = np.pad(
+            x[i], ((pad, pad), (pad, pad), (0, 0)), mode="reflect"
+        )  # pad the sides
+        top_side = np_rng.integers(0, 2 * pad)
+        left_side = np_rng.integers(0, 2 * pad)
+        x_shifted = x_pad[
+            top_side : top_side + h, left_side : left_side + w, :
+        ]  # back to (n,h,w,c)
+        x[i] = x_shifted
 
     # add noise
     noise = np_rng.normal(loc=0.0, scale=settings.noise_std, size=x.shape)
