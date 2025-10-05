@@ -59,7 +59,7 @@ def main() -> None:
 
     optimizer = nnx.Optimizer(
         model,
-        optax.SGD(learning_rate=schedule, momentum=settings.training.momentum),
+        optax.sgd(learning_rate=schedule, momentum=settings.training.momentum),
         wrt=nnx.Param,
     )
 
