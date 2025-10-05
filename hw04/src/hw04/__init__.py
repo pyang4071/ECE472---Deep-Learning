@@ -67,7 +67,7 @@ def main() -> None:
     )
 
     # checkpoint this
-    ckpt_dir = ocp.test_utils.erase_and_create_empty("/tmp/cifar10-100000/")
+    ckpt_dir = ocp.test_utils.erase_and_create_empty("/tmp/cifar10-150000/")
     _, state = nnx.split(model)
     # nnx.display(state)
 
