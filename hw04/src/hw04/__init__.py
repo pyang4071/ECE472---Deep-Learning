@@ -17,6 +17,10 @@ We will define the state of the art as having 95.5 percent accuracy
 """
 
 
+CHECKPOINT_SAVE_LOCATION = "/tmp/cifar10-0.1"
+CHECKPOINT_LOAD_LOCATION = "/tmp/cifar10-0.1"
+
+
 def main() -> None:
     """command line interface entry"""
     settings = load_settings()
@@ -53,7 +57,11 @@ def main() -> None:
         decay_steps=settings.training.num_iters,
     )
 
-    optimizer = nnx.Optimizer(model, optax.adam(schedule), wrt=nnx.Param)
+    optimizer = nnx.Optimizer(
+        model,
+        optax.SGD(learning_rate=schedule, momentum=settings.training.momentum),
+        wrt=nnx.Param,
+    )
 
     log.info("training")
     train_CIFAR(model, optimizer, data_10, settings.training, np_rng)
@@ -67,7 +75,7 @@ def main() -> None:
     )
 
     # checkpoint this
-    ckpt_dir = ocp.test_utils.erase_and_create_empty("/tmp/cifar10-150000/")
+    ckpt_dir = ocp.test_utils.erase_and_create_empty(CHECKPOINT_SAVE_LOCATION)
     _, state = nnx.split(model)
     # nnx.display(state)
 
@@ -108,7 +116,7 @@ def test_on_test_set():
     )
 
     # recreate model
-    ckpt_dir = Path("/tmp/cifar10-pooling/")
+    ckpt_dir = Path(CHECKPOINT_LOAD_LOCATION)
     checkpointer = ocp.StandardCheckpointer()
     graphdef, state = nnx.split(model)
     state_restored = checkpointer.restore(ckpt_dir / "cifar10-resnet20", state)

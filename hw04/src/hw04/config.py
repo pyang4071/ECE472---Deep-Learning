@@ -36,6 +36,7 @@ class TrainingSettings(BaseModel):
     learning_rate: float = 0.1
     flip_ratio: float = 0.25
     noise_std: float = 0.05
+    momentum: float = 0.9
 
 
 class AppSettings(BaseSettings):

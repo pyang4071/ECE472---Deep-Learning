@@ -194,6 +194,12 @@ class Classifier(nnx.Module):
             kernel_size=self.layer_kernel_size[0],
             strides=self.strides[0],
         )
+        self.first_group_norm = GroupNorm(
+            num_channels=self.layer_depths[0],
+            num_groups=self.num_groups[0],
+        )
+        self.first_activation = jax.nn.leaky_relu
+
         self.layers = nnx.List([])
 
         for i in range(1, len(self.layer_depths)):
@@ -229,8 +235,11 @@ class Classifier(nnx.Module):
         # assume x is (batch size, 28, 28, 3)
         val = x
         val = self.first_layer(val)
+        val = self.first_group_norm(val)
+        val = self.first_activation(val)
         for layers in self.layers:
             val = layers(val)
+        # max pooling
         val = jnp.mean(val, axis=(1, 2))
         val = val.reshape((val.shape[0], -1))
         val = self.final_layer(val)
