@@ -18,7 +18,7 @@ We will define the state of the art as having 95.5 percent accuracy
 
 
 CHECKPOINT_SAVE_LOCATION = "/tmp/cifar10-0.1"
-CHECKPOINT_LOAD_LOCATION = "/tmp/cifar10-0.1"
+CHECKPOINT_LOAD_LOCATION = "/tmp/cifar10-100000"
 
 
 def main() -> None:

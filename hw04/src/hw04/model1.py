@@ -246,7 +246,7 @@ class Classifier(nnx.Module):
         return val
 
     def l2loss(self):
-        l2_loss = 0
+        l2_loss = self.first_layer.l2loss()
 
         for layers in self.layers:
             l2_loss += layers.l2loss()
