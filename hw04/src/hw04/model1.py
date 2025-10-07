@@ -92,7 +92,8 @@ class ResidualBlock(nnx.Module):
         activation=jax.nn.leaky_relu,
     ):
         if in_features != out_features or strides != 1:
-            # create a 1 by 1 kernel conv layer to make the short cut x into the right shape so we can do the thing, x+fx
+            # create a 1 by 1 kernel conv layer to make the shortcutted x into the right shape
+            # so we can do the thing, x+fx
             x_key, fx_key = jax.random.split(keys, 2)
             self.conv_layer_x = Conv2d(
                 in_features=in_features,
@@ -107,6 +108,8 @@ class ResidualBlock(nnx.Module):
             fx_key = keys
             self.con_x = False
 
+        fx_key_1, fx_key_2 = jax.random.split(fx_key)
+
         self.group_norm_1 = GroupNorm(in_features, num_groups)
 
         self.conv_layer_1 = Conv2d(
@@ -114,7 +117,7 @@ class ResidualBlock(nnx.Module):
             out_features=out_features,
             kernel_size=kernel_size,
             strides=strides,
-            keys=fx_key,
+            keys=fx_key_1,
             l2reg=l2reg,
         )
 
@@ -125,7 +128,7 @@ class ResidualBlock(nnx.Module):
             out_features=out_features,
             kernel_size=kernel_size,
             strides=1,
-            keys=fx_key,
+            keys=fx_key_2,
             l2reg=l2reg,
         )
 
@@ -215,18 +218,9 @@ class Classifier(nnx.Module):
                 )
             )
 
-        # perform an average global pooling
+        # perform an average global pooling in __call__
+        # x becomes shape (num_samples, 1, 1, self.layer_depths[-1])
 
-        # find the final shape size
-        # test_dummy = jnp.zeros((1,input_shape[0], input_shape[1], self.input_depth))
-        # for layer in self.layers:
-        #    test_dummy = layer(test_dummy)
-
-        # test_dummy = jnp.mean(test_dummy,axis=(1,2)) # shape = (n, channels)
-
-        # _, h, w, c = test_dummy.shape
-
-        # flatten_size = h * w * c
         self.final_layer = nnx.Linear(
             in_features=self.layer_depths[-1], out_features=self.num_classes, rngs=rngs
         )
@@ -239,7 +233,7 @@ class Classifier(nnx.Module):
         val = self.first_activation(val)
         for layers in self.layers:
             val = layers(val)
-        # max pooling
+        # global pooling
         val = jnp.mean(val, axis=(1, 2))
         val = val.reshape((val.shape[0], -1))
         val = self.final_layer(val)

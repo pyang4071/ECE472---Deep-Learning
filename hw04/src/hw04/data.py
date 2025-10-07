@@ -28,15 +28,17 @@ class Data_CIFAR:
         split_ratio: float = 0.8,
         CIFAR10: bool = True,
     ):
-        """get the MINST dataset"""
+        """get the Cifar dataset"""
         if CIFAR10:
             (x_train_temp, y_train_temp), (self.x_test, self.y_test) = (
                 tf.keras.datasets.cifar10.load_data()
             )
+            log.info("Downloaded Cifar 10")
         else:
             (x_train_temp, y_train_temp), (self.x_test, self.y_test) = (
                 tf.keras.datasets.cifar100.load_data()
             )
+            log.info("Downloaded Cifar 100")
 
         # normalize
         x_train_temp = x_train_temp / 255.0  # (num_samples, 28, 28, 3)

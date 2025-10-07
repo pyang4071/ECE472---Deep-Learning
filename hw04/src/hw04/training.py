@@ -40,7 +40,44 @@ def test_accuracy(
     accuracy_percent = correct / total
     log.info("total correct", correct=correct)
     log.info("total tested", total=total)
-    log.info("accurary", accuracy=accuracy_percent)
+    log.info("accurary - top 1", accuracy=accuracy_percent)
+
+    return accuracy_percent
+
+
+def test_top5_accuracy(
+    model: Classifier,
+    data: Data_CIFAR,
+    batch_size: int,
+    validation_set: bool = True,
+):
+    correct = 0
+    total = 0
+    if validation_set:
+        x_np, y_np = data.get_validation()
+    else:
+        x_np, y_np = data.get_test()
+
+    n = len(y_np)
+    for i in range(0, n, batch_size):
+        x, y = (
+            jnp.asarray(x_np[i : i + batch_size]),
+            jnp.asarray(y_np[i : i + batch_size]),
+        )
+        fxy = model(x)
+        # fxy are the logits
+
+        # now get the top 5 indices
+        # shape = (batch_size, 5)
+        top5_pred_indices = np.argsort(fxy, axis=1)[:, -5:]
+        index_in_set = jnp.any(top5_pred_indices == y[:, None], axis=1)
+        total += len(index_in_set)
+        correct += jnp.sum(index_in_set)
+
+    accuracy_percent = correct / total
+    log.info("total correct", correct=correct)
+    log.info("total tested", total=total)
+    log.info("accurary - top 5", accuracy=accuracy_percent)
 
     return accuracy_percent
 
@@ -53,13 +90,12 @@ def data_augment(
 ):
     """randomly data augment"""
     batch_size, h, w, c = x.shape
-    # flip over y
+    # flip over y with a probablity
     flip_mask = np_rng.random(batch_size) < settings.flip_ratio
     for i in range(batch_size):
         if flip_mask[i]:
             x[i] = np.flip(x[i], axis=1)
 
-        # shift
         x_pad = np.pad(
             x[i], ((pad, pad), (pad, pad), (0, 0)), mode="reflect"
         )  # pad the sides
@@ -67,7 +103,7 @@ def data_augment(
         left_side = np_rng.integers(0, 2 * pad)
         x_shifted = x_pad[
             top_side : top_side + h, left_side : left_side + w, :
-        ]  # back to (n,h,w,c)
+        ]  # back to (h,w,c)
         x[i] = x_shifted
 
     # add noise

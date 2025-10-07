@@ -34,8 +34,6 @@ def configure_logging():
     """Configure logging for the application."""
     logging.basicConfig(
         format="%(message)s",
-        # filename="hw04_cifar10.txt",
-        # filemode="w",
         stream=sys.stdout,
     )
 

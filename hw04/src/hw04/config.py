@@ -18,9 +18,10 @@ class DataSettings(BaseModel):
 class ModelSettings(BaseModel):
     """setting for model"""
 
+    cifar10: bool = True
+    top_1: bool = True
     input_depth: int = 3
     data_shape: list[int] = [32, 32]
-    num_classes: int = 10
     kernel: list[tuple[int, int]] = [(3, 3), (3, 3)]
     layer_depths: list[int] = [64, 32]
     num_groups: list[int] = [8, 8]
@@ -39,6 +40,13 @@ class TrainingSettings(BaseModel):
     momentum: float = 0.9
 
 
+class SaveSettings(BaseModel):
+    """Settings for saving"""
+
+    checkpoint_save: str = "/save"
+    checkpoint_load: str = "/load"
+
+
 class AppSettings(BaseSettings):
     """Main application settings."""
 
@@ -47,6 +55,7 @@ class AppSettings(BaseSettings):
     data: DataSettings = DataSettings()
     model: ModelSettings = ModelSettings()
     training: TrainingSettings = TrainingSettings()
+    save: SaveSettings = SaveSettings()
 
     model_config = SettingsConfigDict(
         toml_file=files("hw04").joinpath("config.toml"),
