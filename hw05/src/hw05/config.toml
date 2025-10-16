@@ -1,0 +1,23 @@
+debug = false
+random_seed = 0xc61dd8fc
+
+[data]
+max_token = 4000
+
+[model]
+token_length = 50
+num_classes = 4
+num_layers = 2 
+hidden_layer_width = 512
+embed_depth = 256
+
+[training]
+num_fold = 5
+learning_rate = 0.001
+num_iters = 4000
+batch_size = 256 
+l2reg = 0.0001
+
+[save]
+checkpoint_save = "/tmp/ag_new-2.1"
+checkpoint_load = "/tmp/ag_new-2.1"
