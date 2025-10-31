@@ -2,12 +2,12 @@ debug = false
 random_seed = 0xc61dd8fc
 
 [model]
-num_head = 8 
+num_head = 8
 embed_depth = 128
 ff_dim = 64
 
 
 [testing]
-batch_size = 8 
+batch_size = 32 
 seq_length = 20
 

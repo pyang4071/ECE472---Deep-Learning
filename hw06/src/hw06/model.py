@@ -7,6 +7,71 @@ import structlog
 log = structlog.get_logger()
 
 
+class Attention(nnx.Module):
+    def __init__(self, key, num_head: int, embed_depth: int):
+        self.keys = jax.random.split(key, 4)
+        self.embed_depth = embed_depth
+
+        self.w_q = nnx.Param(
+            jax.random.normal(self.keys[0], (embed_depth, embed_depth))
+            * jnp.sqrt(2 / embed_depth)
+        )
+        self.w_k = nnx.Param(
+            jax.random.normal(self.keys[1], (embed_depth, embed_depth))
+            * jnp.sqrt(2 / embed_depth)
+        )
+        self.w_v = nnx.Param(
+            jax.random.normal(self.keys[2], (embed_depth, embed_depth))
+            * jnp.sqrt(2 / embed_depth)
+        )
+        self.w_o = nnx.Param(
+            jax.random.normal(self.keys[3], (embed_depth, embed_depth))
+            * jnp.sqrt(2 / embed_depth)
+        )
+
+        self.scale = 1 / jnp.sqrt(self.embed_depth)
+
+    def __call__(self, x_q, x_k, x_v, masking: bool, ret_weights: bool = False):
+        # x_q is (batch, seq_length_q, embed_depth)
+        # x_k=x_v is (batch, seq_length_k, embed_depth)
+        batch, seq_length_q, _ = x_q.shape
+        _, seq_length_k, _ = x_k.shape
+
+        q = x_q @ self.w_q
+        k = x_k @ self.w_k
+        v = x_v @ self.w_v
+        # shape (batch, seq_length_q, embed_depth)
+
+        if masking:
+            mask = jnp.tril(jnp.ones([seq_length_q, seq_length_k]))
+            causal_mask = (1 - mask) * -1e9
+            # 0 means pass and -1e9 is blocking (masking)
+
+        atten_weights = jnp.zeros([batch, seq_length_q, seq_length_k])
+        outputs = jnp.zeros([batch, seq_length_q, self.embed_depth])
+        for i in range(batch):
+            q_b = q[i, :, :]
+            k_b = k[i, :, :]
+            v_b = v[i, :, :]
+
+            inner = (q_b @ k_b.T) * self.scale
+            if masking:
+                inner = inner + causal_mask
+            # shape is (seq_length_q, seq_length_k)
+            prob = jax.nn.softmax(inner)
+            atten_weights = atten_weights.at[i, :, :].set(prob)
+            atten = prob @ v_b
+            # shape = (seq_length_q, embed_depth)
+            outputs = outputs.at[i, :, :].set(atten)
+
+        mha = outputs @ self.w_o
+
+        if ret_weights:
+            return mha, atten_weights
+
+        return mha
+
+
 class Multihead_attention(nnx.Module):
     def __init__(self, key, num_head: int, embed_depth: int):
         self.keys = jax.random.split(key, 4)
@@ -20,15 +85,15 @@ class Multihead_attention(nnx.Module):
         dv = self.dk
         self.w_q = nnx.Param(
             jax.random.normal(self.keys[0], (num_head, embed_depth, self.dk))
-            * jnp.sqrt(2 / num_head)
+            * jnp.sqrt(2 / embed_depth)
         )
         self.w_k = nnx.Param(
             jax.random.normal(self.keys[1], (num_head, embed_depth, self.dk))
-            * jnp.sqrt(2 / num_head)
+            * jnp.sqrt(2 / embed_depth)
         )
         self.w_v = nnx.Param(
             jax.random.normal(self.keys[2], (num_head, embed_depth, dv))
-            * jnp.sqrt(2 / num_head)
+            * jnp.sqrt(2 / embed_depth)
         )
 
         self.w_o = nnx.Param(
@@ -36,7 +101,7 @@ class Multihead_attention(nnx.Module):
             * jnp.sqrt(2 / (num_head * self.dk))
         )
 
-        self.scale = jnp.sqrt(1 / self.dk)
+        self.scale = 1 / jnp.sqrt(self.dk)
 
     def __call__(self, x_q, x_k, x_v, masking: bool, ret_weights: bool = False):
         # x_q is (batch, seq_length_q, embed_depth)
@@ -71,7 +136,7 @@ class Multihead_attention(nnx.Module):
                 v_i_b = v_i[j, :, :]
                 # shape (seq_length, dk)
 
-                inner = q_i_b @ k_i_b.T / self.scale
+                inner = (q_i_b @ k_i_b.T) * self.scale
                 if masking:
                     inner = inner + causal_mask
                 # shape is (seq_length_q, seq_length_k)
@@ -122,9 +187,16 @@ class Feedforward(nnx.Module):
 
 
 class Transformer(nnx.Module):
-    def __init__(self, key, num_head: int, embed_depth: int, ff_dim: int):
+    def __init__(
+        self,
+        key,
+        num_head: int,
+        embed_depth: int,
+        ff_dim: int,
+        attention_mech: Multihead_attention,
+    ):
         self.keys = jax.random.split(key, 5)
-        self.multihead_attention_enc = Multihead_attention(
+        self.multihead_attention_enc = attention_mech(
             key=self.keys[0],
             num_head=num_head,
             embed_depth=embed_depth,
@@ -134,12 +206,12 @@ class Transformer(nnx.Module):
             embed_depth=embed_depth,
             ff_dim=ff_dim,
         )
-        self.multihead_attention_dec = Multihead_attention(
+        self.multihead_attention_dec = attention_mech(
             key=self.keys[2],
             num_head=num_head,
             embed_depth=embed_depth,
         )
-        self.multihead_attention_cross = Multihead_attention(
+        self.multihead_attention_cross = attention_mech(
             key=self.keys[3],
             num_head=num_head,
             embed_depth=embed_depth,

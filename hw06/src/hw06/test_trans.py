@@ -6,7 +6,7 @@ import structlog
 from flax import nnx
 
 from .config import AppSettings
-from .model import Transformer, Multihead_attention
+from .model import Transformer, Multihead_attention, Attention
 
 log = structlog.get_logger()
 
@@ -28,6 +28,7 @@ class test_transformer:
             num_head=settings.model.num_head,
             embed_depth=settings.model.embed_depth,
             ff_dim=settings.model.ff_dim,
+            attention_mech=Multihead_attention,
         )
 
         self.x_test = jax.random.normal(
@@ -41,9 +42,11 @@ class test_transformer:
 
         self.mha_output_shape()
         self.mha_mask()
+        self.mha_mask_partial(settings)
         self.mha_grad()
         self.trans_output_shape()
         self.trans_grad()
+        self.mha_vs_atten(settings)
 
     def mha_output_shape(self):
         out = self.mha(self.x_test, self.x_test, self.x_test, False)
@@ -60,7 +63,33 @@ class test_transformer:
 
         masked = atten_w * casual_mask
         assert jnp.max(masked) < 1e-4
-        log.info("masking works")
+        log.info("masking works - weight test")
+
+    def mha_mask_partial(self, settings: AppSettings):
+        def input_single(x_b):
+            # x_b is shape (seq_length, embed_depth)
+            x = jnp.expand_dims(x_b, axis=0)
+            # x.shape = (1, seq_length, embed_depth)
+            out = self.mha(x, x, x, True, False)
+            out = out[0]
+            # shape is (seq_length, embed_depth)
+            return out
+
+        dep_sum = 0
+
+        for i in range(settings.testing.batch_size):
+            jacobian = jax.jacobian(input_single)(self.x_test[i])
+            # shape is (seq_length, embed_depth, seq_length, embed_depth)
+            dep = jnp.linalg.norm(jacobian, axis=(1, 3))
+            # shape (seq_length, seq_length)
+            # upper triangle should be zeros
+            mask = jnp.tril(jnp.ones(dep.shape))
+            dep_mask = 1 - mask
+            test_jac = dep * dep_mask
+            dep_sum = dep_sum + jnp.sum(test_jac)
+
+        assert dep_sum == 0
+        log.info("mha masking works - partial test")
 
     def mha_grad(self):
         _, w_init = self.mha(self.x_test, self.x_test, self.x_test, False, True)
@@ -117,3 +146,24 @@ class test_transformer:
         diff = out_2 - out_1
         assert jnp.abs(jnp.mean(diff)) > 0
         log.info("grads is present")
+
+    def mha_vs_atten(self, settings: AppSettings):
+        transformer_normal = Transformer(
+            key=self.model_key,
+            num_head=settings.model.num_head,
+            embed_depth=settings.model.embed_depth,
+            ff_dim=settings.model.ff_dim,
+            attention_mech=Attention,
+        )
+        transformer_mha = Transformer(
+            key=self.model_key,
+            num_head=1,
+            embed_depth=settings.model.embed_depth,
+            ff_dim=settings.model.ff_dim,
+            attention_mech=Multihead_attention,
+        )
+        out_atten = transformer_normal(self.x_test)
+        out_mha = transformer_mha(self.x_test)
+        diff = out_mha - out_atten
+        assert jnp.max(jnp.abs(diff)) < 1e-4
+        log.info("num_head = 1 works the same as normal attention")
