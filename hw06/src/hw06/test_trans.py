@@ -14,8 +14,7 @@ log = structlog.get_logger()
 class test_transformer:
     def __init__(self, settings: AppSettings):
         key = jax.random.PRNGKey(settings.random_seed)
-        self.data_key, self.model_key = jax.random.split(key)
-        # self.np_rng = np.random.default_rng(np.array(self.data_key))
+        self.data_key, self.model_key, self.shuffle_key = jax.random.split(key, 3)
 
         self.mha = Multihead_attention(
             key=self.model_key,
@@ -47,6 +46,7 @@ class test_transformer:
         self.trans_output_shape()
         self.trans_grad()
         self.mha_vs_atten(settings)
+        self.mha_shuffle_invar(settings)
 
     def mha_output_shape(self):
         out = self.mha(self.x_test, self.x_test, self.x_test, False)
@@ -167,3 +167,22 @@ class test_transformer:
         diff = out_mha - out_atten
         assert jnp.max(jnp.abs(diff)) < 1e-4
         log.info("num_head = 1 works the same as normal attention")
+
+    def mha_shuffle_invar(self, settings: AppSettings):
+        indices = jnp.arange(settings.testing.seq_length)
+        perm_indices = jax.random.permutation(self.shuffle_key, indices)
+
+        def permute(x, indices):
+            return x[:, indices, :]
+
+        x_test_perm = permute(self.x_test, perm_indices)
+
+        # no mask
+        out_1 = self.mha(self.x_test, self.x_test, self.x_test, False)
+        out_2 = self.mha(x_test_perm, x_test_perm, x_test_perm, False)
+
+        out_1 = permute(out_1, perm_indices)
+
+        diff = out_1 - out_2
+        assert jnp.max(jnp.abs(diff)) < 1e-4
+        log.info("mha without mask is shuffle invariant")
