@@ -1,0 +1,36 @@
+# pyproject.toml.jinja
+
+[project]
+name = "hw07"
+version = "0.1.0"
+description = "Assignment 7 - Sparse Encoder"
+readme = "README.md"
+authors = [
+    { name = "Paddy Yang", email = "paddy.yang@cooper.edu" }
+]
+requires-python = ">=3.13"
+
+dependencies = [
+    "structlog",
+    "numpy",
+    "pydantic-settings>=2.10.1",
+    "matplotlib>=3.10.5",
+    "tqdm>=4.67.1",
+    "jax[cpu]>=0.7.1",
+    "flax>=0.11.2",
+    "optax>=0.2.4",
+    "scikit-learn",
+]
+
+
+[project.scripts]
+hw07 = "hw07:main"
+sparse = "hw07:train_sparse"
+feat = "hw07:features"
+
+[build-system]
+requires = ["uv_build>=0.8.3,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.setuptools.package-data]
+"hw07" = ["config.toml"]

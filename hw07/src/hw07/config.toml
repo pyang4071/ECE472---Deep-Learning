@@ -1,0 +1,44 @@
+debug = false
+random_seed = 0xc61dd8fc
+
+[data]
+num_features = 2
+num_samples = 25000
+sigma_noise = 0.1
+
+enc_num_data = 100000
+
+[model]
+layer_dim = [64, 128, 128]
+
+enc_hidden_dim = 2048
+enc_norm_val = 0.1
+
+
+[training]
+batch_size = 128
+num_iters = 6000
+learning_rate = 0.01
+log_clip = 1e-6
+l2_loss = 1e-4
+
+enc_num_iters = 10000 
+enc_batch_size = 1024
+enc_lam = 5
+enc_lr = 5e-5
+
+
+
+[plotting]
+output_dir = "artifacts/"
+figsize = [10, 10]
+dpi = 50
+
+enc_dpi = 50
+enc_features = [10, 104, 109, 114, 12, 126, 132, 150, 152, 163, 165, 169, 172, 193, 195, 62, 73, 93]
+
+[save]
+checkpoint_save_mlp = "/tmp/classifer_mlp-0.4"
+checkpoint_load_mlp = "/tmp/classifer_mlp-0.4"
+checkpoint_save_enc = "/tmp/sparse_enc-0.6"
+checkpoint_load_enc = "/tmp/sparse_enc-0.6"
