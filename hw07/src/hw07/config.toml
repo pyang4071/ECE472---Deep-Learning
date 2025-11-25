@@ -3,13 +3,13 @@ random_seed = 0xc61dd8fc
 
 [data]
 num_features = 2
-num_samples = 25000
+num_samples = 10000
 sigma_noise = 0.1
 
-enc_num_data = 100000
+enc_num_data = 50000
 
 [model]
-layer_dim = [64, 128, 128]
+layer_dim = [128, 256, 256]
 
 enc_hidden_dim = 2048
 enc_norm_val = 0.1
@@ -35,10 +35,10 @@ figsize = [10, 10]
 dpi = 50
 
 enc_dpi = 50
-enc_features = [10, 104, 109, 114, 12, 126, 132, 150, 152, 163, 165, 169, 172, 193, 195, 62, 73, 93]
+enc_features = [142, 146, 1511, 1516, 152, 1521, 1548, 155, 1561, 1562, 1582, 1589, 1606, 1621, 1634, 164, 1644, 1660, 1700, 1740, 1789, 1792, 1852, 1896, 206
 
 [save]
-checkpoint_save_mlp = "/tmp/classifer_mlp-0.4"
-checkpoint_load_mlp = "/tmp/classifer_mlp-0.4"
-checkpoint_save_enc = "/tmp/sparse_enc-0.6"
-checkpoint_load_enc = "/tmp/sparse_enc-0.6"
+checkpoint_save_mlp = "/tmp/classifer_mlp-1.1"
+checkpoint_load_mlp = "/tmp/classifer_mlp-1.1"
+checkpoint_save_enc = "/tmp/sparse_enc-1.1"
+checkpoint_load_enc = "/tmp/sparse_enc-1.1"

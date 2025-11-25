@@ -62,16 +62,18 @@ def plot_fit(
 
 
 def plot_features(
+    data: Data_Spiral,
     classifier: NNXSpiralModel,
     sparse_enc: SparseEncoder,
     settings: PlottingSettings,
-    arg_max: bool = False,
 ):
     """plot a feature heat map"""
-    feat = settings.enc_features
+    #feat = settings.enc_features
+    feat = np.concatenate((np.arange(500),np.arange(1500,2000)))
+    #feat = np.arange(1500, 2000)
 
-    x = np.linspace(-10, 10, settings.enc_dpi * settings.figsize[1])
-    y = np.linspace(-10, 10, settings.enc_dpi * settings.figsize[0])
+    x = np.linspace(-15, 15, settings.enc_dpi * settings.figsize[1])
+    y = np.linspace(-15, 15, settings.enc_dpi * settings.figsize[0])
 
     X, Y = np.meshgrid(x, y)
 
@@ -83,10 +85,7 @@ def plot_features(
     for i in range(0, len(points), batch_size):
         neurons = classifier.get_features(points[i : i + batch_size])
         features = sparse_enc.get_features(neurons)
-        if arg_max:
-            feat_i = np.asarray(np.argmax(features, axis=1))
-        else:
-            feat_i = np.asarray(features[:, feat])
+        feat_i = np.asarray(features[:, feat])
 
         Z_list.append(feat_i)
 
@@ -94,28 +93,27 @@ def plot_features(
     log.info("Z shape", shape=Z.shape)
     h, w = X.shape
 
-    if arg_max:
-        Z = Z.reshape(h, w, 1)
-        bar = trange(1)
-    else:
-        num_feat = len(feat)
-        Z = Z.reshape(h, w, num_feat)
-        # same shape as X and Y for plotting but multiple features
+    num_feat = len(feat)
+    Z = Z.reshape(h, w, num_feat)
+    # same shape as X and Y for plotting but multiple features
 
-        for i in range(num_feat):
-            if np.max(Z[:, :, i]) != 0:
-                Z[:, :, i] = Z[:, :, i] / np.max(Z[:, :, i])  # normalize
 
-        bar = trange(num_feat)
+    for i in range(num_feat):
+       if np.max(Z[:, :, i]) != 0:
+            Z[:, :, i] = Z[:, :, i] / np.max(Z[:, :, i])  # normalize
+
+    bar = trange(num_feat)
 
     for i in bar:
         plt.figure(figsize=settings.figsize)
-        plt.imshow(Z[:, :, i], cmap="coolwarm", extent=(-10, 10, -10, 10))
+        plt.imshow(Z[:, :, i], cmap="coolwarm", extent=(-15, 15, -15, 15), origin="lower")
         plt.colorbar(label="Feature activation level")
         plt.title(f"Feature {feat[i]} Heapmap")
         plt.xlabel("x")
         ylab = plt.ylabel("y")
         ylab.set_rotation(0)
+
+        plt.scatter(data.x[:, 0], data.x[:, 1], c=data.t, alpha=0.25)
 
         settings.output_dir.mkdir(parents=True, exist_ok=True)
         output = f"hw07/feature_{feat[i]}.png"

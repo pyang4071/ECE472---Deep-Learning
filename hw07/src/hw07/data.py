@@ -60,7 +60,7 @@ class Data_Activations:
     def __init__(self, rng: np.random.Generator, model, num, act_dim):
         self.rng = rng
 
-        points = rng.uniform(low=[-10, -10], high=[10, 10], size=(num, 2))
+        points = rng.uniform(low=[-15, -15], high=[15, 15], size=(num, 2))
 
         data_act = np.zeros([0, act_dim])
         for i in range(0, num, 512):

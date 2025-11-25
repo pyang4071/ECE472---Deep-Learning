@@ -141,6 +141,15 @@ def features():
     # JAX PRNG
     key = jax.random.PRNGKey(settings.random_seed + 1)
     data_key, classifer_key, encoder_key = jax.random.split(key, 3)
+    np_rng = np.random.default_rng(np.array(data_key))
+
+    data = Data_Spiral(
+        rng=np_rng,
+        num_features=settings.data.num_features,
+        num_samples=settings.data.num_samples,
+        sigma=settings.data.sigma_noise,
+    )
+
 
     classifier = NNXSpiralModel(
         key=classifer_key,
@@ -173,9 +182,7 @@ def features():
 
     log.info("recreate sparse encoder")
 
-    plot_features(classifier, sparse_enc, settings.plotting)
-
-    plot_features(classifier, sparse_enc, settings.plotting, True)
+    plot_features(data, classifier, sparse_enc, settings.plotting)
 
     log.info("finished all plotting")
 
