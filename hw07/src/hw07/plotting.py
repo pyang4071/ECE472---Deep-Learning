@@ -56,7 +56,7 @@ def plot_fit(
     ylab.set_rotation(0)
 
     settings.output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = settings.output_dir / "hw07_plt.png"
+    output_path = settings.output_dir / "hw07_plt.pdf"
     plt.savefig(output_path)
     log.info("Saved plot", path=str(output_path))
 
@@ -68,9 +68,7 @@ def plot_features(
     settings: PlottingSettings,
 ):
     """plot a feature heat map"""
-    #feat = settings.enc_features
-    feat = np.concatenate((np.arange(500),np.arange(1500,2000)))
-    #feat = np.arange(1500, 2000)
+    feat = settings.enc_features
 
     x = np.linspace(-15, 15, settings.enc_dpi * settings.figsize[1])
     y = np.linspace(-15, 15, settings.enc_dpi * settings.figsize[0])
@@ -113,12 +111,11 @@ def plot_features(
         ylab = plt.ylabel("y")
         ylab.set_rotation(0)
 
-        plt.scatter(data.x[:, 0], data.x[:, 1], c=data.t, alpha=0.25)
+        plt.scatter(data.x[:, 0], data.x[:, 1], c=data.t, alpha=0.1)
 
         settings.output_dir.mkdir(parents=True, exist_ok=True)
         output = f"hw07/feature_{feat[i]}.png"
         output_path = settings.output_dir / output
         plt.savefig(output_path)
-        # log.info("Saved plot", path=str(output_path))
 
         plt.close()

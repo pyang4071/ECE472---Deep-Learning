@@ -190,6 +190,6 @@ def features():
 """
 The sparse layer must be large enough such the features are distinctly separated. If not, the features would over lay themselves on each other which may make anaylsis difficult.
 In the case of the psiral, we have found features that each correspond to a region in space. This suggest that the classifier take in the data and determine the location where on the grid it is before making a guess.
-We notice the features are activated in a spiral like fashion which is similiar to the spirals seen in the dataset. Thus, it must mean that the model is breaking the space into spirals. 
+We notice the features are activated in a spiral like fashion which is similiar to the spirals seen in the dataset. Thus, it must mean that the model is breaking the space into spirals. We see that some of the features are quite defined while others covers a larger space. 
 
 """
